@@ -1,1 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Environnements virtuels et configuration locale
+.venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+
+# Notebooks Jupyter
+.ipynb_checkpoints/
+
+# Donnees locales, intermediaires et traitees
 *.xlsx
+data/raw/enquetes/
+data/interim/*
+data/processed/*
+data/external/
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+
+# Modeles entraines et artefacts ML
+models/*
+!models/.gitkeep
+*.joblib
+*.pkl
+*.pickle
+*.onnx
+
+# Resultats generes
+reports/figures/*
+reports/metrics/*
+reports/generated/*
+!reports/figures/.gitkeep
+!reports/metrics/.gitkeep
+!reports/generated/.gitkeep
+logs/
+*.log
+
+# Editeurs et systeme d'exploitation
+.vscode/
+.idea/
+*.code-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Outils locaux d'agents
+.agents/
+
+# Fichiers temporaires
+*.tmp
+*.temp
+*.bak
+~$*
