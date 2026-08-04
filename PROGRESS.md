@@ -1,6 +1,6 @@
 # Suivi du projet bois-énergie
 
-Dernière mise à jour : 3 août 2026
+Dernière mise à jour : 4 août 2026
 
 ## Objectif
 
@@ -52,18 +52,32 @@ Résultat de l'exécution : chaque fichier passe de 694 à 682 lignes après sup
 
 Les valeurs manquantes restantes sont conservées et comptabilisées dans `reports/generated/qualite_demande.json` et `reports/generated/qualite_offre.json`. Elles seront traitées dans le futur pipeline de préparation ML afin que l'imputation soit apprise seulement sur les données d'entraînement.
 
+### 4 août 2026 — Analyse exploratoire
+
+- Ajout du module reproductible `src/analysis/explore_data.py`.
+- Analyse limitée aux 550 observations historiques de chaque jeu, couvrant 22 régions de 2000 à 2024.
+- Génération des statistiques descriptives, taux de valeurs manquantes, candidats aux valeurs extrêmes selon la règle IQR et matrices de corrélation.
+- Génération de cinq graphiques par jeu : données manquantes, distributions des cibles, tendance nationale, évolution région-année et corrélations.
+- Production de rapports JSON, CSV et Markdown dans `reports/generated/`.
+- Ajout de tests automatisés pour les statistiques et la description du panel temporel.
+
+Premiers constats : les variables métier ont au maximum 2,182 % de valeurs manquantes. La demande totale est fortement corrélée à la population (0,9415) et au nombre de ménages (0,8905). L'offre totale est fortement corrélée au volume transporté (0,9469). Les volumes transportés et les productions converties devront être examinés avant modélisation, car une variable calculée à partir de la cible ou indisponible au moment de la prévision provoquerait une fuite de données.
+
+Les nombreux candidats IQR ne sont pas supprimés : les différences structurelles entre régions rendent une règle globale insuffisante. Une transformation logarithmique et une analyse par région seront évaluées pendant la préparation ML.
+
 ## Prochaines étapes
 
 - Examiner les rapports qualité et décider du traitement métier des valeurs manquantes.
-- Réaliser l'analyse exploratoire des distributions et tendances régionales.
+- Sélectionner les variables disponibles au moment de la prévision et éliminer les risques de fuite de données.
 - Construire les variables temporelles sans fuite de données.
-- Préparer les jeux chronologiques d'entraînement, validation et test.
+- Préparer les jeux chronologiques d'entraînement, validation et test avec imputation ajustée sur l'entraînement.
 - Entraîner les modèles de référence puis comparer les modèles ML classiques.
 
 ## Commandes utiles
 
 ```powershell
 python -m src.data.clean_data --dataset tous
+python -m src.analysis.explore_data --dataset tous
 python -m unittest discover -s tests -v
 ```
 
