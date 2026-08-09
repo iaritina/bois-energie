@@ -22,7 +22,6 @@ import seaborn as sns
 
 from src.data.clean_data import run_cleaning
 
-
 DATASETS = {
     "demande": {
         "path": PROJECT_ROOT / "data/interim/demande_historique.csv",
@@ -74,11 +73,11 @@ def load_historical(kind: str) -> pd.DataFrame:
 def compute_statistics(frame: pd.DataFrame) -> pd.DataFrame:
     """Calcule les statistiques descriptives et indicateurs de qualite."""
     numeric = frame.select_dtypes(include="number")
-    statistics = numeric.describe(
-        percentiles=[0.01, 0.25, 0.5, 0.75, 0.99]
-    ).transpose()
+    statistics = numeric.describe(percentiles=[0.01, 0.25, 0.5, 0.75, 0.99]).transpose()
     statistics["missing_count"] = numeric.isna().sum()
-    statistics["missing_pct"] = numeric.isna().mean().mul(100)
+    statistics["missing_pct"] = (
+        numeric.isna().mean().mul(100)
+    )  # multiplie par 100 pour obtenir le pourcentage
     statistics["zero_count"] = numeric.eq(0).sum()
 
     q1 = numeric.quantile(0.25)
@@ -86,9 +85,7 @@ def compute_statistics(frame: pd.DataFrame) -> pd.DataFrame:
     iqr = q3 - q1
     lower = q1 - 1.5 * iqr
     upper = q3 + 1.5 * iqr
-    statistics["iqr_outlier_candidates"] = (
-        numeric.lt(lower) | numeric.gt(upper)
-    ).sum()
+    statistics["iqr_outlier_candidates"] = (numeric.lt(lower) | numeric.gt(upper)).sum()
     return statistics
 
 
@@ -100,7 +97,9 @@ def _strongest_correlations(
     for target in targets:
         if target not in correlations:
             continue
-        values = correlations[target].drop(labels=list(excluded), errors="ignore").dropna()
+        values = (
+            correlations[target].drop(labels=list(excluded), errors="ignore").dropna()
+        )
         values = values.reindex(values.abs().sort_values(ascending=False).index).head(5)
         result[target] = [
             {"variable": variable, "correlation": round(float(value), 4)}
@@ -231,7 +230,9 @@ def plot_regional_heatmap(frame: pd.DataFrame, kind: str, output_dir: Path) -> N
 
 
 def plot_correlations(frame: pd.DataFrame, kind: str, output_dir: Path) -> None:
-    numeric = frame.select_dtypes(include="number").drop(columns="annee", errors="ignore")
+    numeric = frame.select_dtypes(include="number").drop(
+        columns="annee", errors="ignore"
+    )
     correlations = numeric.corr()
     mask = np.triu(np.ones_like(correlations, dtype=bool), k=1)
     size = max(10, len(correlations) * 0.58)
@@ -270,7 +271,9 @@ def _write_markdown_report(summary: dict[str, Any], path: Path) -> None:
     ]
     missing = summary["valeurs_manquantes_pct"]
     if missing:
-        lines.extend(f"- `{column}` : {value:.3f} %" for column, value in missing.items())
+        lines.extend(
+            f"- `{column}` : {value:.3f} %" for column, value in missing.items()
+        )
     else:
         lines.append("Aucune valeur manquante.")
 
