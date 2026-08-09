@@ -1,6 +1,6 @@
 # Suivi du projet bois-énergie
 
-Dernière mise à jour : 4 août 2026
+Dernière mise à jour : 9 août 2026
 
 ## Objectif
 
@@ -65,19 +65,41 @@ Premiers constats : les variables métier ont au maximum 2,182 % de valeurs manq
 
 Les nombreux candidats IQR ne sont pas supprimés : les différences structurelles entre régions rendent une règle globale insuffisante. Une transformation logarithmique et une analyse par région seront évaluées pendant la préparation ML.
 
+### 9 août 2026 — Sélection et préparation des variables ML
+
+- Ajout du module `src/features/prepare_features.py` pour les quatre tâches : demande de bois de chauffe, demande de charbon, offre de bois de feu et offre de charbon.
+- Sélection explicite des variables disponibles avant la prévision et exclusion des identifiants, métadonnées, totaux et autres cibles.
+- Exclusion initiale des consommations par habitant pour la demande, car elles participent directement à son calcul.
+- Exclusion de `production_charbon_tonnes` et `volume_transporte_tonnes` pour l'offre afin d'éviter une conversion directe de la cible ou une information disponible après la production.
+- Ajout de `target_lag_1`, valeur de la cible de l'année précédente, et `target_rolling_mean_3`, moyenne des trois années précédentes. Ces variables n'utilisent jamais la cible de l'année courante.
+- Découpage chronologique : entraînement 2000–2018, validation 2019–2021 et test 2022–2024.
+- Retrait uniquement des lignes dont la cible de la tâche est absente. Les variables explicatives manquantes sont conservées jusqu'au pipeline scikit-learn.
+- Ajout d'un préprocesseur : imputation médiane et standardisation des variables numériques, imputation par modalité fréquente et encodage one-hot des catégories.
+- Le préprocesseur doit être ajusté uniquement sur `X_train`, puis appliqué sans réajustement à la validation et au test.
+
+Tailles produites dans `data/processed/` :
+
+- Demande de bois de chauffe : 415 entraînement, 66 validation, 63 test.
+- Demande de charbon : 410 entraînement, 66 validation, 64 test.
+- Offre de bois de feu : 410 entraînement, 66 validation, 66 test.
+- Offre de charbon : 414 entraînement, 65 validation, 66 test.
+
+Le préprocesseur a été vérifié sur les quatre tâches réelles : chaque jeu est transformé en 40 variables numériques et ne contient plus de valeur manquante après transformation. Pour l'évaluation, les retards utilisent uniquement les observations antérieures disponibles. Pour prévoir 2025–2030, les retards devront être alimentés récursivement par les prédictions des années précédentes.
+
 ## Prochaines étapes
 
 - Examiner les rapports qualité et décider du traitement métier des valeurs manquantes.
-- Sélectionner les variables disponibles au moment de la prévision et éliminer les risques de fuite de données.
-- Construire les variables temporelles sans fuite de données.
-- Préparer les jeux chronologiques d'entraînement, validation et test avec imputation ajustée sur l'entraînement.
-- Entraîner les modèles de référence puis comparer les modèles ML classiques.
+- Entraîner une régression de référence pour chaque cible et établir les métriques de base.
+- Entraîner Random Forest et Gradient Boosting avec une validation temporelle.
+- Comparer MAE, RMSE, R² et WAPE, puis sélectionner le meilleur modèle par tâche.
+- Analyser l'importance des variables et les erreurs par région et par année.
 
 ## Commandes utiles
 
 ```powershell
 python -m src.data.clean_data --dataset tous
 python -m src.analysis.explore_data --dataset tous
+python -m src.features.prepare_features --dataset tous
 python -m unittest discover -s tests -v
 ```
 
