@@ -86,13 +86,34 @@ Tailles produites dans `data/processed/` :
 
 Le préprocesseur a été vérifié sur les quatre tâches réelles : chaque jeu est transformé en 40 variables numériques et ne contient plus de valeur manquante après transformation. Pour l'évaluation, les retards utilisent uniquement les observations antérieures disponibles. Pour prévoir 2025–2030, les retards devront être alimentés récursivement par les prédictions des années précédentes.
 
+### 9 août 2026 — Premiers modèles d'offre et de demande
+
+- Ajout du module commun `src/models/train_models.py`.
+- Comparaison d'une régression Ridge, d'une Random Forest et d'un Gradient Boosting pour chacune des quatre cibles.
+- Apprentissage sur `log(1 + cible)` afin de limiter l'effet des fortes asymétries, puis restitution des prédictions en m³ EBR.
+- Sélection exclusivement sur le WAPE de validation 2019–2021, avec la MAE comme critère secondaire.
+- Réajustement du modèle sélectionné sur 2000–2021, puis évaluation finale unique sur 2022–2024.
+- Calcul des métriques MAE, RMSE, R² et WAPE, sauvegarde des pipelines complets, prédictions de test, importances des variables et graphiques observé–prédit.
+- Ajout de `requirements.txt` et de tests pour les métriques et la sélection des modèles.
+
+Résultats sur le test :
+
+- Demande de bois de chauffe : Gradient Boosting, WAPE 11,31 %, MAE 67 528 m³ EBR, R² 0,401.
+- Demande de charbon : Random Forest, WAPE 11,73 %, MAE 47 149 m³ EBR, R² 0,966.
+- Offre de bois de feu : Random Forest, WAPE 12,51 %, MAE 34 121 m³ EBR, R² 0,979.
+- Offre de charbon : Random Forest, WAPE 4,84 %, MAE 10 851 m³ EBR, R² 0,998.
+
+La demande de bois de chauffe présente une rupture majeure à Betsiboka : environ 232 706 m³ EBR en 2022, 1 974 787 en 2023, puis 243 746 en 2024. Cette observation explique une grande partie de la RMSE et du faible R² du test. Elle est conservée pour ne pas modifier le test après observation des résultats, mais sa source doit être vérifiée avant toute validation métier.
+
+Les variables temporelles dominent trois modèles. Pour l'offre de bois de feu, la superficie forestière hors aire protégée est la variable principale. Ces performances portent sur des données synthétiques et sur une évaluation à un pas utilisant les observations antérieures disponibles ; elles ne constituent pas encore une validation sur des données réelles.
+
 ## Prochaines étapes
 
 - Examiner les rapports qualité et décider du traitement métier des valeurs manquantes.
-- Entraîner une régression de référence pour chaque cible et établir les métriques de base.
-- Entraîner Random Forest et Gradient Boosting avec une validation temporelle.
-- Comparer MAE, RMSE, R² et WAPE, puis sélectionner le meilleur modèle par tâche.
-- Analyser l'importance des variables et les erreurs par région et par année.
+- Vérifier avec les sources métier les ruptures et valeurs extrêmes, notamment Betsiboka en 2023.
+- Renforcer la validation temporelle avec plusieurs fenêtres glissantes avant de figer les modèles.
+- Produire les prévisions récursives 2025–2030 pour chaque région et chaque cible.
+- Reconstituer les totaux, comparer offre et demande et calculer les écarts régionaux.
 
 ## Commandes utiles
 
@@ -100,6 +121,7 @@ Le préprocesseur a été vérifié sur les quatre tâches réelles : chaque jeu
 python -m src.data.clean_data --dataset tous
 python -m src.analysis.explore_data --dataset tous
 python -m src.features.prepare_features --dataset tous
+python -m src.models.train_models --dataset tous
 python -m unittest discover -s tests -v
 ```
 
