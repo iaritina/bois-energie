@@ -1,6 +1,6 @@
 # Suivi du projet bois-énergie
 
-Dernière mise à jour : 9 août 2026
+Dernière mise à jour : 10 août 2026
 
 ## Objectif
 
@@ -107,11 +107,31 @@ La demande de bois de chauffe présente une rupture majeure à Betsiboka : envir
 
 Les variables temporelles dominent trois modèles. Pour l'offre de bois de feu, la superficie forestière hors aire protégée est la variable principale. Ces performances portent sur des données synthétiques et sur une évaluation à un pas utilisant les observations antérieures disponibles ; elles ne constituent pas encore une validation sur des données réelles.
 
+### 10 août 2026 — Validation temporelle à fenêtres croissantes
+
+- Ajout du module `src/evaluation/time_validation.py`.
+- Validation strictement limitée à 2000–2021 ; les années de test 2022–2024 ne participent ni au classement ni aux recommandations.
+- Utilisation de trois fenêtres non chevauchantes : 2000–2012 vers 2013–2015, 2000–2015 vers 2016–2018 et 2000–2018 vers 2019–2021.
+- Exécution de 36 entraînements : quatre cibles, trois modèles et trois fenêtres.
+- Classement par WAPE moyen, puis écart-type du WAPE et MAE moyenne.
+- Production des métriques détaillées, résumés de stabilité, prédictions de validation, erreurs régionales et graphique comparatif.
+
+Recommandations issues des trois fenêtres :
+
+- Demande de bois de chauffe : Gradient Boosting, WAPE moyen 6,26 %, écart-type 0,83.
+- Demande de charbon : Gradient Boosting provisoire, WAPE moyen 17,45 %, écart-type 7,16.
+- Offre de bois de feu : Random Forest, WAPE moyen 11,88 %, écart-type 4,70.
+- Offre de charbon : Random Forest, WAPE moyen 4,72 %, écart-type 0,62.
+
+La validation confirme les choix initiaux pour trois cibles. Pour la demande de charbon, Random Forest était meilleure sur 2019–2021, mais Gradient Boosting obtient le meilleur WAPE moyen sur les trois fenêtres. L'écart avec Ridge reste faible et la variabilité est élevée : ce choix est donc provisoire et doit être présenté avec prudence. Analamanga est la région la plus difficile pour la demande de charbon sur les fenêtres évaluées.
+
+Cette validation révèle également que les modèles non linéaires sont nettement supérieurs à Ridge pour les deux offres. Random Forest est particulièrement stable pour l'offre de charbon. Les résultats demeurent fondés sur des données synthétiques.
+
 ## Prochaines étapes
 
 - Examiner les rapports qualité et décider du traitement métier des valeurs manquantes.
 - Vérifier avec les sources métier les ruptures et valeurs extrêmes, notamment Betsiboka en 2023.
-- Renforcer la validation temporelle avec plusieurs fenêtres glissantes avant de figer les modèles.
+- Figer les modèles recommandés sur toutes les observations historiques 2000–2024, en conservant la réserve sur la demande de charbon.
 - Produire les prévisions récursives 2025–2030 pour chaque région et chaque cible.
 - Reconstituer les totaux, comparer offre et demande et calculer les écarts régionaux.
 
@@ -122,6 +142,7 @@ python -m src.data.clean_data --dataset tous
 python -m src.analysis.explore_data --dataset tous
 python -m src.features.prepare_features --dataset tous
 python -m src.models.train_models --dataset tous
+python -m src.evaluation.time_validation --dataset tous
 python -m unittest discover -s tests -v
 ```
 
