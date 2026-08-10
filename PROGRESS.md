@@ -127,13 +127,34 @@ La validation confirme les choix initiaux pour trois cibles. Pour la demande de 
 
 Cette validation révèle également que les modèles non linéaires sont nettement supérieurs à Ridge pour les deux offres. Random Forest est particulièrement stable pour l'offre de charbon. Les résultats demeurent fondés sur des données synthétiques.
 
+### 10 août 2026 — Prévisions récursives expérimentales 2025–2030
+
+- Ajout du module `src/forecasting/forecast_2030.py`.
+- Réentraînement des modèles recommandés sur toutes les cibles historiques disponibles de 2000 à 2024.
+- Sauvegarde de quatre pipelines finaux dans `models/*/final_model.joblib`.
+- Utilisation exclusive des variables explicatives du scénario futur ; les cibles synthétiques 2025–2030 ne sont jamais données aux modèles.
+- Prévision récursive : la prédiction d'une année alimente `target_lag_1` et la moyenne mobile des années suivantes.
+- Génération de 132 prévisions par cible, soit 22 régions pendant six années.
+- Reconstitution des demandes et offres totales, calcul de l'écart offre-demande, du taux de couverture et du statut déficit/surplus.
+- Comparaison descriptive séparée avec les cibles du scénario synthétique, après les prédictions.
+- Génération d'un bilan régional, d'un bilan national annuel et d'un graphique offre-demande avec carte thermique régionale.
+
+Résultats nationaux du scénario expérimental :
+
+- 2025 : demande 21,70 millions de m³ EBR, offre 10,85 millions, déficit 10,86 millions.
+- 2030 : demande 25,00 millions de m³ EBR, offre 10,79 millions, déficit 14,21 millions.
+- Vingt régions sur vingt-deux sont classées en déficit chaque année ; Alaotra-Mangoro et DIANA restent en surplus dans ce scénario.
+
+La trajectoire montre une demande croissante face à une offre presque stable. Elle ne doit pas être interprétée comme une prévision officielle : les données historiques, les covariables futures et le scénario de comparaison sont synthétiques. Le résultat valide le fonctionnement du pipeline de prévision et du calcul d'écart.
+
 ## Prochaines étapes
 
 - Examiner les rapports qualité et décider du traitement métier des valeurs manquantes.
 - Vérifier avec les sources métier les ruptures et valeurs extrêmes, notamment Betsiboka en 2023.
-- Figer les modèles recommandés sur toutes les observations historiques 2000–2024, en conservant la réserve sur la demande de charbon.
-- Produire les prévisions récursives 2025–2030 pour chaque région et chaque cible.
-- Reconstituer les totaux, comparer offre et demande et calculer les écarts régionaux.
+- Construire les indicateurs de synthèse régionaux et classer les déficits selon leur intensité.
+- Ajouter une représentation cartographique lorsque les limites géographiques des régions seront disponibles.
+- Tester plusieurs scénarios de covariables futures plutôt qu'un seul scénario tendanciel.
+- Préparer le module d'API ou l'interface de consultation prévu dans le planning.
 
 ## Commandes utiles
 
@@ -143,6 +164,7 @@ python -m src.analysis.explore_data --dataset tous
 python -m src.features.prepare_features --dataset tous
 python -m src.models.train_models --dataset tous
 python -m src.evaluation.time_validation --dataset tous
+python -m src.forecasting.forecast_2030
 python -m unittest discover -s tests -v
 ```
 
