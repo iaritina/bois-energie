@@ -1,6 +1,6 @@
 # Suivi du projet bois-énergie
 
-Dernière mise à jour : 10 août 2026
+Dernière mise à jour : 17 août 2026
 
 ## Objectif
 
@@ -147,11 +147,30 @@ Résultats nationaux du scénario expérimental :
 
 La trajectoire montre une demande croissante face à une offre presque stable. Elle ne doit pas être interprétée comme une prévision officielle : les données historiques, les covariables futures et le scénario de comparaison sont synthétiques. Le résultat valide le fonctionnement du pipeline de prévision et du calcul d'écart.
 
+### 17 août 2026 — Indicateurs régionaux de validation
+
+- Ajout du module `src/evaluation/regional_indicators.py`.
+- Agrégation des prévisions 2025–2030 par région : offre et demande cumulées, écart, déficit, surplus et taux de couverture.
+- Calcul du déficit annuel maximal, du nombre d'années en déficit, de la première année de déficit et de la tendance annuelle de l'écart.
+- Classement des 22 régions selon leur taux de couverture global, avec le déficit cumulé comme information complémentaire.
+- Classification configurable : critique sous 50 %, élevée de 50 à 75 %, modérée de 75 à 95 %, équilibre de 95 à 105 % et surplus au-delà de 105 %.
+- Génération de tableaux CSV et JSON, d'un rapport Markdown et de trois graphiques : classement de couverture, déficits cumulés et évolution annuelle régionale.
+
+Résultats du scénario expérimental :
+
+- Taux de couverture national cumulé : 46,19 %.
+- Écart national cumulé 2025–2030 : -75,28 millions de m³ EBR.
+- Dix-sept régions sont classées critiques, trois en vulnérabilité élevée et deux en surplus.
+- Bongolava présente le plus faible taux de couverture global, avec 3,50 %.
+- Alaotra-Mangoro présente la meilleure couverture ; DIANA est la seconde région en surplus.
+- Toutes les vingt régions déficitaires le restent pendant les six années du scénario.
+
+Ces niveaux sont des règles de lecture méthodologiques, pas des seuils réglementaires. Le classement dépend entièrement des prévisions synthétiques et ne doit pas être utilisé pour une décision publique avant remplacement et validation des données.
+
 ## Prochaines étapes
 
 - Examiner les rapports qualité et décider du traitement métier des valeurs manquantes.
 - Vérifier avec les sources métier les ruptures et valeurs extrêmes, notamment Betsiboka en 2023.
-- Construire les indicateurs de synthèse régionaux et classer les déficits selon leur intensité.
 - Ajouter une représentation cartographique lorsque les limites géographiques des régions seront disponibles.
 - Tester plusieurs scénarios de covariables futures plutôt qu'un seul scénario tendanciel.
 - Préparer le module d'API ou l'interface de consultation prévu dans le planning.
@@ -165,6 +184,7 @@ python -m src.features.prepare_features --dataset tous
 python -m src.models.train_models --dataset tous
 python -m src.evaluation.time_validation --dataset tous
 python -m src.forecasting.forecast_2030
+python -m src.evaluation.regional_indicators
 python -m unittest discover -s tests -v
 ```
 
